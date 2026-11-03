@@ -2,81 +2,152 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no,email=no,address=no">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="renderer" content="webkit">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>YANJ | 页面更新中</title>
 
-<!-- 阿里巴巴普惠体 WebFont（字由 CDN，免费商用） -->
+<!-- 阿里巴巴普惠体 WebFont（字由 CDN，免费商用）；加载失败自动回退系统中文字体 -->
+<link rel="preconnect" href="https://webfont.hellofont.cn" crossorigin>
 <link type="text/css" rel="stylesheet" href="https://webfont.hellofont.cn/webfont/puhuiti-2?weight=85&family=puhuiti-2-85">
 <link type="text/css" rel="stylesheet" href="https://webfont.hellofont.cn/webfont/puhuiti-2?weight=55&family=puhuiti-2-55">
 
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body {
+  :root {
+    /* 字体栈：优先 WebFont，失败回退 iOS / Android / 微信内核自带中文字体 */
+    --font-bold: "puhuiti-2-85", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "HarmonyOS Sans SC", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", "Heiti SC", Arial, sans-serif;
+    --font-regular: "puhuiti-2-55", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "HarmonyOS Sans SC", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", "Heiti SC", Arial, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  * {
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent; /* 去掉 iOS/微信 点击高亮 */
+  }
+
+  html {
     height: 100%;
+    -webkit-text-size-adjust: 100%;   /* 防止 iOS 横屏/微信字体放大导致排版错乱 */
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* body 固定定位：彻底屏蔽 iOS Safari / 微信 的下拉回弹与地址栏抖动 */
+  body {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     background-color: #000000;
     color: #ffffff;
-    overflow: hidden;
+    font-family: var(--font-regular);
+    overscroll-behavior: none;
+    touch-action: manipulation;       /* 禁止双击缩放，提升点击响应 */
+    -webkit-user-select: none;
+    user-select: none;
   }
 
-  /* 背景漂浮光点 */
-  .bg-dots { position: fixed; inset: 0; z-index: 0; }
+  /* ---------------- 背景漂浮光点 ---------------- */
+  .bg-dots {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;             /* 不拦截点击 */
+  }
   .bg-dots span {
     position: absolute;
-    bottom: -10px;
-    width: 6px; height: 6px;
+    bottom: -14px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.35);
-    animation: floatUp linear infinite;
+    will-change: transform, opacity;
+    animation-name: floatUp;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-duration: 8s;           /* 兜底，实际由 JS 随机覆盖 */
   }
   @keyframes floatUp {
-    from { transform: translateY(0); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    to   { transform: translateY(-110vh); opacity: 0; }
+    0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { transform: translate3d(0, -110vh, 0); opacity: 0; }
   }
 
+  /* ---------------- 主体内容 ---------------- */
   .container {
-    position: relative;
-    z-index: 1;
-    min-height: 100vh;
-    min-height: 100dvh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 2.5rem;
-    /* 内容上移，让视觉更居中（补偿底部联系方式占用的空间） */
-    transform: translateY(-6vh);
-    padding: 0 1rem;
+    gap: clamp(1.25rem, 5vh, 2.5rem);
+    /* 上下留白：底部预留联系方式空间，使视觉重心略偏上 */
+    padding-top: 1.5rem;
+    padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
+    padding-right: 1rem;
+    padding-bottom: 4.5rem;
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    padding-left: 1rem;
+    z-index: 1;
   }
 
   /* 旋转加载圆环 */
   .spinner {
-    width: 56px; height: 56px;
+    width: 56px;
+    height: 56px;
+    width: clamp(44px, 13vw, 56px);
+    height: clamp(44px, 13vw, 56px);
     border: 4px solid rgba(255, 255, 255, 0.15);
     border-top-color: #ffffff;
     border-radius: 50%;
+    flex: 0 0 auto;
+    will-change: transform;
     animation: spin 1s linear infinite;
-    flex-shrink: 0;
   }
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
 
-  /* 主文案：阿里巴巴普惠体 Bold（85），禁止换行，字号随屏宽自适应 */
+  /* 主文案 */
   .main-text {
-    font-family: "puhuiti-2-85";
-    font-size: clamp(1.15rem, 5.5vw, 3rem);
+    font-family: var(--font-bold);
     font-weight: bold;
-    letter-spacing: 0.08em;
+    /* 字号随屏宽自适应，JS 会在此基础上再做防溢出收缩 */
+    font-size: clamp(1.05rem, 5.2vw, 2.75rem);
+    letter-spacing: 0.06em;
+    line-height: 1.4;
     text-align: center;
-    white-space: nowrap;   /* 禁止跨行 */
+    white-space: nowrap;              /* 禁止跨行 */
+    max-width: 100%;
+    will-change: opacity;
     animation: breathe 2.5s ease-in-out infinite;
   }
   @keyframes breathe {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.55; }
+    50%      { opacity: 0.55; }
   }
+
+  /* 省略号跳动 */
+  .dots { display: inline-block; }
   .dots span {
     display: inline-block;
     animation: bounce 1.4s ease-in-out infinite;
@@ -85,60 +156,227 @@
   .dots span:nth-child(3) { animation-delay: 0.4s; }
   @keyframes bounce {
     0%, 60%, 100% { transform: translateY(0); }
-    30% { transform: translateY(-0.35em); }
+    30%           { transform: translateY(-0.3em); }
   }
 
-  /* 底部联系方式：阿里巴巴普惠体 Regular（55），禁止换行 */
+  /* ---------------- 底部联系方式 ---------------- */
   .contact {
-    position: fixed;
-    bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+    position: absolute;
     left: 0;
-    width: 100%;
+    right: 0;
+    bottom: 1.25rem;
+    bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); /* 适配刘海屏/全面屏手势条 */
+    padding: 0 12px;
     text-align: center;
-    font-size: clamp(0.75rem, 3.2vw, 1rem);
-    font-family: "puhuiti-2-55";
+    font-family: var(--font-regular);
     font-weight: normal;
+    font-size: clamp(11px, 3.2vw, 15px);
+    line-height: 1.6;
     color: #cccccc;
-    white-space: nowrap;   /* 禁止跨行 */
-    padding: 0 0.5rem;
+    white-space: nowrap;
     z-index: 1;
   }
   .contact a {
     color: #ffffff;
     text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
   }
-  .contact a:hover { text-decoration: underline; }
+  .contact a:active { opacity: 0.65; }
+
+  /* ---------------- 屏幕适配补丁 ---------------- */
+
+  /* 超窄屏（如 iPhone SE 一代 320px / 部分安卓 360px）允许邮箱换行 */
+  @media (max-width: 340px) {
+    .contact {
+      white-space: normal;
+      word-break: break-all;
+    }
+  }
+
+  /* 横屏 / 超矮屏：整体收缩，避免内容被裁切 */
+  @media (max-height: 420px) and (orientation: landscape) {
+    .container {
+      gap: 0.9rem;
+      padding-top: 0.75rem;
+      padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+      padding-bottom: 2.6rem;
+      padding-bottom: calc(2.6rem + env(safe-area-inset-bottom, 0px));
+    }
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border-width: 3px;
+    }
+    .main-text { font-size: 1.05rem; }
+    .contact {
+      bottom: 0.5rem;
+      bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+      font-size: 11px;
+    }
+  }
+
+  @media (max-height: 320px) {
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border-width: 3px;
+    }
+    .container { gap: 0.6rem; }
+    .main-text { font-size: 0.9rem; }
+  }
+
+  /* 大屏（平板 / 折叠屏展开）限制最大宽度，保持版心 */
+  @media (min-width: 768px) {
+    .main-text { letter-spacing: 0.1em; }
+  }
+
+  /* 尊重系统「减少动态效果」设置 */
+  @media (prefers-reduced-motion: reduce) {
+    .bg-dots { display: none; }
+    .spinner { animation-duration: 3s; }
+    .main-text { animation: none; opacity: 1; }
+    .dots span { animation: none; }
+  }
 </style>
 </head>
 <body>
-  <div class="bg-dots" id="bgDots"></div>
 
-  <div class="container">
-    <div class="spinner"></div>
-    <div class="main-text">
+  <div class="bg-dots" id="bgDots" aria-hidden="true"></div>
+
+  <main class="container">
+    <div class="spinner" role="progressbar" aria-label="加载中"></div>
+    <div class="main-text" id="mainText">
       页面更新中<span class="dots"><span>.</span><span>.</span><span>.</span></span>敬请期待
     </div>
-  </div>
+  </main>
 
-  <div class="contact">
-   联系邮箱： <a href="mailto:service@yanj.org.cn">service@yanj.org.cn</a>
-  </div>
+  <footer class="contact">
+    联系邮箱：<a href="mailto:service@yanj.org.cn">service@yanj.org.cn</a>
+  </footer>
 
   <script>
-    // 随机生成漂浮光点
-    (function () {
+  (function () {
+    'use strict';
+
+    var docEl     = document.documentElement;
+    var container = document.querySelector('.container');
+    var mainText  = document.getElementById('mainText');
+
+    /* ==========================================================
+       1. 生成背景漂浮光点（移动端减少数量，降低性能开销）
+       ========================================================== */
+    function createDots() {
       var box = document.getElementById('bgDots');
-      for (var i = 0; i < 30; i++) {
-        var s = document.createElement('span');
-        s.style.left = Math.random() * 100 + '%';
-        s.style.animationDuration = (6 + Math.random() * 8) + 's';
-        s.style.animationDelay = (-Math.random() * 10) + 's';
-        var size = 3 + Math.random() * 5;
-        s.style.width = size + 'px';
-        s.style.height = size + 'px';
-        box.appendChild(s);
+      if (!box) return;
+
+      var isNarrow = window.innerWidth < 480;
+      var count    = isNarrow ? 16 : 30;
+      var frag     = document.createDocumentFragment();
+
+      for (var i = 0; i < count; i++) {
+        var s    = document.createElement('span');
+        var size = 2 + Math.random() * 5;  // 2px ~ 7px
+
+        s.style.left              = (Math.random() * 100).toFixed(2) + '%';
+        s.style.width             = size.toFixed(1) + 'px';
+        s.style.height            = size.toFixed(1) + 'px';
+        s.style.animationDuration = (7 + Math.random() * 8).toFixed(2) + 's';
+        s.style.animationDelay    = (-Math.random() * 15).toFixed(2) + 's';
+
+        frag.appendChild(s);
       }
-    })();
+      box.appendChild(frag);
+    }
+
+    /* ==========================================================
+       2. 主文案「永不溢出」自适应：
+          CSS 的 clamp() 给出设计尺寸，这里再按实际可用宽度做
+          二次收缩，保证 320px 小屏 / 微信大字号模式下也不会换行溢出
+       ========================================================== */
+    function fitMainText() {
+      if (!mainText || !container) return;
+
+      // 先清空行内字号，回到 CSS 计算值
+      mainText.style.fontSize = '';
+
+      var cs    = window.getComputedStyle(container);
+      var padL  = parseFloat(cs.paddingLeft)  || 0;
+      var padR  = parseFloat(cs.paddingRight) || 0;
+      var avail = container.clientWidth - padL - padR;
+      if (!avail || avail <= 0) {
+        avail = (docEl.clientWidth || window.innerWidth) - 24;
+      }
+
+      var fs = parseFloat(window.getComputedStyle(mainText).fontSize);
+      if (!fs || isNaN(fs)) return;
+
+      var minFs = 11;      // 最小可读字号
+      var guard = 0;
+
+      // 逐级收缩，直到不溢出（最多迭代 240 次，防止死循环）
+      while (mainText.scrollWidth > avail + 0.5 && fs > minFs && guard++ < 240) {
+        fs -= 0.5;
+        mainText.style.fontSize = fs + 'px';
+      }
+    }
+
+    /* ==========================================================
+       3. 事件绑定：resize / 横竖屏切换 / 字体加载完成 / 页面显示
+       ========================================================== */
+    var rafId = null;
+    function scheduleFit() {
+      if (rafId) {
+        (window.cancelAnimationFrame || window.clearTimeout)(rafId);
+      }
+      rafId = (window.requestAnimationFrame || function (fn) { return setTimeout(fn, 16); })(function () {
+        fitMainText();
+      });
+    }
+
+    function bindEvents() {
+      window.addEventListener('resize', scheduleFit, false);
+      window.addEventListener('pageshow', scheduleFit, false);
+
+      // iOS / 微信 旋转屏幕后视口尺寸更新存在延迟，多补几次
+      window.addEventListener('orientationchange', function () {
+        setTimeout(scheduleFit, 120);
+        setTimeout(scheduleFit, 350);
+        setTimeout(scheduleFit, 800);
+      }, false);
+
+      // WebFont 加载完成（或失败回退）后字宽会变化，需要重新量一次
+      if (document.fonts) {
+        if (document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+          document.fonts.ready.then(scheduleFit)['catch'](function () {});
+        }
+        if (typeof document.fonts.addEventListener === 'function') {
+          try { document.fonts.addEventListener('loadingdone', scheduleFit); } catch (e) {}
+        }
+      }
+
+      // 微信内置浏览器偶尔首屏尺寸不准，延迟兜底
+      window.addEventListener('load', function () {
+        scheduleFit();
+        setTimeout(scheduleFit, 300);
+        setTimeout(scheduleFit, 1000);
+      }, false);
+    }
+
+    /* ==========================================================
+       4. 初始化
+       ========================================================== */
+    function init() {
+      createDots();
+      fitMainText();
+      bindEvents();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init, false);
+    } else {
+      init();
+    }
+  })();
   </script>
 </body>
 </html>
